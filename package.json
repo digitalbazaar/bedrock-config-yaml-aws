@@ -1,0 +1,52 @@
+{
+  "name": "@bedrock/config-yaml-aws",
+  "version": "0.0.1",
+  "type": "module",
+  "description": "AWS configuration source for Bedrock YAML configuration",
+  "license": "Apache-2.0",
+  "main": "./lib/index.js",
+  "files": [
+    ".reuse/dep5",
+    "LICENSES/**/*.txt",
+    "lib/**/*.js"
+  ],
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "keywords": [
+    "bedrock",
+    "yaml",
+    "aws",
+    "nitro"
+  ],
+  "author": {
+    "name": "Digital Bazaar, Inc.",
+    "email": "support@digitalbazaar.com",
+    "url": "https://digitalbazaar.com"
+  },
+  "dependencies": {
+    "@aws-sdk/client-secrets-manager": "3.1124.0"
+  },
+  "peerDependencies": {
+    "@bedrock/core": "^6.3.0",
+    "@bedrock/aws-kms": "github:digitalbazaar/bedrock-aws-kms#initial"
+  },
+  "directories": {
+    "lib": "./lib"
+  },
+  "devDependencies": {
+    "@digitalbazaar/eslint-config": "^9.0.0",
+    "eslint": "^10.5.0"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/digitalbazaar/bedrock-config-yaml-aws.git"
+  },
+  "bugs": {
+    "url": "https://github.com/digitalbazaar/bedrock-config-yaml-aws/issues"
+  },
+  "homepage": "https://github.com/digitalbazaar/bedrock-config-yaml-aws#readme"
+}
