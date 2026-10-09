@@ -1,0 +1,71 @@
+name: Bedrock Node.js CI
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 26.x
+      - run: npm install
+      - run: npm run lint
+  test-node:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [24.x, 26.x]
+    services:
+      fakecloud:
+        image: ghcr.io/faiscadev/fakecloud:latest
+        ports:
+          - 4566:4566
+    env:
+      GH_TOKEN: ${{ secrets.VERES_BUILDER_CI_TOKEN }}
+      FAKECLOUD_ENDPOINT: http://localhost:4566
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Configure private dependency access
+        run: |
+          test -n "$GH_TOKEN"
+          git config --global \
+            url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf \
+            ssh://git@github.com/
+          git config --global --add \
+            url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf \
+            https://github.com/
+      - name: Wait for FakeCloud
+        run: |
+          for attempt in $(seq 1 30); do
+            if curl -fsS -o /dev/null "$FAKECLOUD_ENDPOINT/_fakecloud/health"; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "FakeCloud did not become ready." >&2
+          exit 1
+      - run: npm install
+      - run: npm install
+        working-directory: test
+      - run: npm run coverage-ci
+        working-directory: test
+      - uses: actions/upload-artifact@v6
+        with:
+          name: coverage-node-${{ matrix.node-version }}
+          path: test/coverage/lcov.info
+          if-no-files-found: error
