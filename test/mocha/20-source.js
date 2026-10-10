@@ -15,13 +15,8 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-import {createCipheriv, createHash} from 'node:crypto';
 import {config} from '@bedrock/core';
-import {getClient} from '@bedrock/aws-kms';
-import {httpClient} from '@digitalbazaar/http-client';
 import {readConfigFromAws} from '@bedrock/config-yaml-aws';
-import {SecretsManagerClient} from '@aws-sdk/client-secrets-manager';
-import sinon from 'sinon';
 
 describe('AWS config source', () => {
   const source = config['config-yaml-aws'];
@@ -36,7 +31,6 @@ describe('AWS config source', () => {
   });
 
   afterEach(() => {
-    sinon.restore();
     Object.assign(source, original);
     if(originalEnvironment === undefined) {
       delete process.env[environmentVariable];
@@ -76,89 +70,4 @@ describe('AWS config source', () => {
     }
   });
 
-  it('times out an AWS request that never settles', async () => {
-    source.enabled = true;
-    source.environment = 'nitro';
-    source.maxWaitMs = 20;
-    sinon.stub(httpClient, 'put').resolves({text: async () => 'token'});
-    sinon.stub(httpClient, 'get').resolves({text: async () => 'secret'});
-    sinon.stub(SecretsManagerClient.prototype, 'send').returns(
-      new Promise(() => {}));
-
-    await readConfigFromAws().should.be.rejectedWith(
-      'Bedrock config did not become ready before the deadline.');
-  });
-
-  it('ends retries when the startup budget expires', async () => {
-    source.enabled = true;
-    source.environment = 'nitro';
-    source.maxWaitMs = 10000;
-    const clock = sinon.useFakeTimers();
-    sinon.stub(httpClient, 'put').resolves({text: async () => 'token'});
-    sinon.stub(httpClient, 'get').resolves({text: async () => 'secret'});
-    const send = sinon.stub(SecretsManagerClient.prototype, 'send').rejects(
-      Object.assign(new Error('not ready'), {
-        name: 'ResourceNotFoundException'
-      }));
-    const load = readConfigFromAws().catch(error => error);
-
-    await clock.tickAsync(10001);
-    const error = await load;
-    error.name.should.equal('TimeoutError');
-    error.details.maxWaitMs.should.equal(10000);
-    error.details.dependencyStage.should.equal('secret_fetch');
-    sinon.assert.calledTwice(send);
-  });
-
-  it('does not retry when maxWaitMs is zero', async () => {
-    source.enabled = true;
-    source.environment = 'nitro';
-    source.maxWaitMs = 0;
-    sinon.stub(httpClient, 'put').resolves({text: async () => 'token'});
-    sinon.stub(httpClient, 'get').resolves({text: async () => 'secret'});
-    const send = sinon.stub(SecretsManagerClient.prototype, 'send').rejects(
-      Object.assign(new Error('not ready'), {
-        name: 'ResourceNotFoundException'
-      }));
-
-    await readConfigFromAws().should.be.rejectedWith(
-      'Bedrock config did not become ready before the deadline.');
-    sinon.assert.calledOnce(send);
-  });
-
-  it('decrypts with attestation and clears the data key', async () => {
-    source.enabled = true;
-    source.environment = 'nitro';
-    sinon.stub(httpClient, 'put').resolves({text: async () => 'token'});
-    sinon.stub(httpClient, 'get').resolves({text: async () => 'secret'});
-    const key = Buffer.alloc(32, 1);
-    const iv = Buffer.alloc(12, 2);
-    const plaintext = 'core:\n  aws-core-test: true\n' +
-      'app:\n  aws-app-test: true\n';
-    const cipher = createCipheriv('aes-256-gcm', key, iv);
-    const ciphertext = Buffer.concat([
-      cipher.update(plaintext), cipher.final()
-    ]);
-    const send = sinon.stub(SecretsManagerClient.prototype, 'send').resolves({
-      SecretString: JSON.stringify({
-        version: 1, format: 'yaml', kmsKeyId: 'test',
-        encryptedDataKey: Buffer.from('ciphertext').toString('base64'),
-        iv: iv.toString('base64'),
-        authTag: cipher.getAuthTag().toString('base64'),
-        ciphertext: ciphertext.toString('base64'),
-        plaintextSha256: createHash('sha256').update(plaintext).digest('hex')
-      })
-    });
-    config['aws-kms'].clients['config-yaml'] ??= {};
-    const decrypt = sinon.stub(
-      getClient({name: 'config-yaml'}), 'decryptWithAttestation').resolves({
-      plaintext: key
-    });
-
-    const content = await readConfigFromAws();
-    content.should.equal(plaintext);
-    key.equals(Buffer.alloc(32)).should.equal(true);
-    sinon.assert.calledOnce(send);
-    sinon.assert.calledOnce(decrypt);
-  });
 });

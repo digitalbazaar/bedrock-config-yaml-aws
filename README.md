@@ -97,16 +97,10 @@ npm install
 npm run lint
 ```
 
-Start [FakeCloud](https://fakecloud.dev/) in another terminal:
-
-```sh
-docker run --rm -p 4566:4566 ghcr.io/faiscadev/fakecloud:latest
-```
-
 Install the test dependencies and run the suite:
 
 ```sh
 cd test
 npm install
-FAKECLOUD_ENDPOINT=http://localhost:4566 npm test
+npm test
 ```
