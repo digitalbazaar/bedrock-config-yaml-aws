@@ -10,20 +10,15 @@
     "coverage-report": "c8 report"
   },
   "dependencies": {
-    "@aws-sdk/client-secrets-manager": "3.1124.0",
     "@bedrock/aws-kms": "github:digitalbazaar/bedrock-aws-kms#initial",
-    "@bedrock/config-yaml": "github:digitalbazaar/bedrock-config-yaml#aws-config-support",
     "@bedrock/config-yaml-aws": "file:..",
     "@bedrock/core": "^6.3.0",
     "@bedrock/test": "^9.0.0",
-    "@digitalbazaar/http-client": "^4.4.0",
     "c8": "^11.0.0",
     "chai": "^6.2.2",
     "chai-as-promised": "^8.0.2",
     "cross-env": "^10.1.0",
-    "sinon": "^22.0.0",
-    "winston": "^3.19.0",
-    "@aws-sdk/client-kms": "3.1124.0"
+    "winston": "^3.19.0"
   },
   "c8": {
     "excludeNodeModules": false,
