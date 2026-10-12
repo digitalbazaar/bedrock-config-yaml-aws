@@ -10,7 +10,7 @@
     "coverage-report": "c8 report"
   },
   "dependencies": {
-    "@bedrock/aws-kms": "github:digitalbazaar/bedrock-aws-kms#initial",
+    "@bedrock/aws-kms": "^1.0.0",
     "@bedrock/config-yaml-aws": "file:..",
     "@bedrock/core": "^6.3.0",
     "@bedrock/test": "^9.0.0",

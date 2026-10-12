@@ -29,7 +29,7 @@
   },
   "peerDependencies": {
     "@bedrock/core": "^6.3.0",
-    "@bedrock/aws-kms": "github:digitalbazaar/bedrock-aws-kms#initial"
+    "@bedrock/aws-kms": "^1.0.0"
   },
   "directories": {
     "lib": "./lib"
