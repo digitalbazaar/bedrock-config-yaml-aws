@@ -1,6 +1,6 @@
 {
   "name": "@bedrock/config-yaml-aws",
-  "version": "1.0.0",
+  "version": "1.0.1-0",
   "type": "module",
   "description": "AWS configuration source for Bedrock YAML configuration",
   "license": "Apache-2.0",
