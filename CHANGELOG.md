@@ -1,9 +1,5 @@
 # bedrock-config-yaml-aws ChangeLog
 
-## Unreleased
+## 1.0.0 - 2026-10-12
 
-### Added
-- Add `readConfigFromAws()` for loading encrypted Bedrock YAML configuration
-  from Secrets Manager using Nitro attestation.
-- Read the configuration SecretId from the parent EC2 instance tag.
-- Retry startup dependencies within the configured time limit.
+- See git history for changes.
