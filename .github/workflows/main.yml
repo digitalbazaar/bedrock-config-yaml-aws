@@ -9,6 +9,8 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ secrets.VERES_BUILDER_CI_TOKEN }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -16,6 +18,15 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: 26.x
+      - name: Configure private dependency access
+        run: |
+          test -n "$GH_TOKEN"
+          git config --global \
+            url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf \
+            ssh://git@github.com/
+          git config --global --add \
+            url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf \
+            https://github.com/
       - run: npm install
       - run: npm run lint
   test-node:
